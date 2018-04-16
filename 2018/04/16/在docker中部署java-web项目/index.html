@@ -1,0 +1,147 @@
+<html>
+  <head>
+    <title>在docker中部署java web项目 - benarchen</title>
+    <link href='/images/avatar.jpg' rel='shortcut icon'>
+
+<link href='/atom.xml' rel='alternate' type='application/rss+xml'>
+
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/highlight.css">
+<link rel="stylesheet" href="/css/responsive.css">
+
+<script src="/js/jquery.js"></script>
+<script src="/js/basics.js"></script>
+
+<meta content='width=device-width, initial-scale=1.0, user-scalable=no' name='viewport'>
+
+<meta content='text/html; charset=utf-8' http-equiv='content-type'>
+
+
+
+  </head>
+  <body>
+    <header>
+  <a id='go-back-home' href='/'><img src='/images/avatar.jpg' alt='Home' width='66' height='66'></a>
+  
+  <p><font size ="4">benarchen</p></font>
+  
+  <p><font size ="4">做好该做的事！</font></p>
+</header>
+
+    <div id='container'>
+      <div class='block'>
+
+  
+    <a class='main' href='/'>Blog</a>
+  
+    <a class='main' href='mailto:.yun@gmail.com'>Email</a>
+  
+    <a class='main' href='https://github.com/benarchen'>Github</a>
+  
+  
+</div>
+
+      <section class='paging'>
+
+
+  
+  
+  
+  
+    <div class='right'>
+      <a href='/2018/04/10/Nginx-在-docker-中的应用/'>
+        ›
+      </a>
+    </div>
+  
+</section>
+
+      <div class='content'>
+        <section class='post'>
+          <h1>
+            <div class='date'>2018-04-16</div>
+            在docker中部署java web项目
+          </h1>
+          <p>﻿<strong>在学习了 docker 的基本知识之后，自然就应该练练手了，这次来写写如何在docker容器中部署一个java web 应用的详细步骤</strong></p>
+<hr>
+<p><strong>（说明：主机 windows 系统，在 vmware workstations 中运行 CentOS 7 的虚拟机，虚拟机的ip 为 192.168.190.130）</strong></p>
+<h3 id="安装-Docker"><a href="#安装-Docker" class="headerlink" title="安装 Docker"></a>安装 Docker</h3><p> 既然是 docker 的实战，第一步自然是检查 docker 是不是安装了，是不是正常运行的，这里我用的是CentOS 7  的 Linux 系统，安装好 docker 之后从镜像市场中拉取所需的 tomcat 镜像和MySQL 镜像，如下图示：<br> <img src="http://img.blog.csdn.net/20180121100935662" alt="docker镜像"><br> 由于这两个镜像比较大，所以建议提前拉取。</p>
+<h3 id="创建-MySQL-Container"><a href="#创建-MySQL-Container" class="headerlink" title="创建 MySQL Container"></a>创建 MySQL Container</h3><ul>
+<li><p>镜像拉取好了之后就创建运行应用所需的容器，首先创建一个 MySQL 容器<br><code>[root@kubernetes ~]# docker run -itd --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 mysql</code></p>
+<p>  解释一下上面命令的含义：</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">run -itd：在 docker 中运行一个带交互式的且能后台运行的容器。</span><br><span class="line">--name mysql:给容器命名为 mysql，注意 name 前面有两个小横杠，你也可以自己随意命名。</span><br><span class="line">-p 3306:3306：这里是指将容器的 3306 端口映射到主机的 3306 端口，冒号前面指的是主机，后面指的是容器。</span><br><span class="line">-e MY_ROOT_PASSWORD=123456:这行命令的意思是在创建 mysql 容器的时候在容器中创建一个 root用户，密码是 123456，要是不想用 123456，把它改成你想要的就可以了。</span><br></pre></td></tr></table></figure>
+<p>下面我们进入这个容器看看：</p>
+<p><img src="http://img.blog.csdn.net/20180121102621583?" alt="mysql容器内部"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker exec -it mysql bash</span><br></pre></td></tr></table></figure>
+<p>docekr exec 命令用来进入容器内部。进入之后可以使用 service mysql start 命令来查看当前 mysql服务的状态，一般情况下都是 runing 的，如果不是，自行启动一下就可以了。<br>然后使用  mysql -u root -p   回车后提示输入密码，我的是 123456 .输入回车之后就会进入 mysql 的命令行了！  可用 show databases ;  查看一下 mysql 中有哪些数据库。</p>
+<p><em>注：现在在 mysql 容器的命令行中，可以另外打开一个终端进行下面的操作，也可以使用 ctrl+p+q（按住 ctrl 不放，先按  p 键，再按  q  键。全部松开后回车就可以回到 linux命令行中）来退出 mysql 容器但不让容器停止。</em></p>
+<h3 id="连接并导入数据库至容器"><a href="#连接并导入数据库至容器" class="headerlink" title="连接并导入数据库至容器"></a>连接并导入数据库至容器</h3><ul>
+<li>现在使用一个工具连接到数据库，并且将数据库上传到 docker 的 mysql 容器中。<br><img src="http://img.blog.csdn.net/20180121104529617?" alt="Navicat软件"><br>（ Navicat  是我认为最好用的数据库管理工具。）</li>
+</ul>
+<p><img src="http://img.blog.csdn.net/20180121104957345?" alt="连接数据库"></p>
+<p>这里的 ip 地址就是虚机 ip，指定连接到虚机的 3306 端口，也就是会连接到 mysql 容器，因为主机的3306 端口是和容器的 3306 相连接的，连接名随便取测试连接成功后点击确定就好了。</p>
+<ul>
+<li><p>下一步就是把我们 java web 应用的数据库导入到 mysql 容器的数据库中了。这个步骤直接在 Navicat 中就可以完成了</p>
+<p><img src="http://img.blog.csdn.net/20180121105523899?" alt="新建一个数据库"></p>
+</li>
+</ul>
+<p>新建一个数据库名为 db_mps 的数据库，字符集和排序规则不选，它会根据  .sql  文件自动识别。</p>
+<p><img src="http://img.blog.csdn.net/20180121105904037?" alt="新建db_mps数据库"></p>
+<p>这里运行完  .sql  文件之后刷新表，或者刷新数据库，这取决于 .sql 文件有哪些东西。我的 .sql 文件里只有几张表。这个时候回到 mysql 容器中用 show databases ; 查看容器中的数据库，这时会显示有db_mps  数据库。到这里为止，就创建好了  mysql  容器，并且在容器中部署了一个名为  db_mps 的数据库。</p>
+<p><img src="http://img.blog.csdn.net/20180121110501274?" alt="这里写图片描述"></p>
+<h3 id="创建-Web-Container"><a href="#创建-Web-Container" class="headerlink" title="创建 Web Container"></a>创建 Web Container</h3><ul>
+<li>接下来创建部署web服务的容器</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@kubernetes ~]# docker run -itd -p 80:8080 --name myweb tomcat</span><br></pre></td></tr></table></figure>
+<p><img src="http://img.blog.csdn.net/20180121110859796?" alt="这里写图片描述"></p>
+<p>这里所用的参数在创建 mysql 容器时都有解释。进入到 myweb 容器中可以看到有一个 webapps 的目录，把 java web 应用的工程文件导出为 war 包，然后放到这里的 webapps 目录下。这样 tomcat  会自动解压部署。现在已经创建好了 myweb 容器，我们可以在浏览器输入 192.168.190.130:80 检查一下tomcat是否部署成功。</p>
+<p><img src="http://img.blog.csdn.net/20180121111324782?" alt="这里写图片描述"></p>
+<p>那看到这个页面说明 myweb 中的 tomcat 服务已经是启动的，如果没有出现 tomcat 部署成功的这个页面，你需要进入 myweb 的 bin 目录找到 catalina.sh 文件并且 run 起来。</p>
+<h3 id="导入工程文件"><a href="#导入工程文件" class="headerlink" title="导入工程文件"></a>导入工程文件</h3><ul>
+<li><p>tomcat 服务已经部署好了，接下来就是导入 war 包工程文件了。<br>在导入 war 包之前，查看一下 mysql 容器的 ip，然后去 java web 的工程文件中访问数据库的文件里修改访问的数据库，如下图所示：<br> <img src="http://img.blog.csdn.net/20180121113406138?" alt="这里写图片描述"></p>
+<p>图上可以看到，这里的 ip 是 172.17.0.2，也就是说如果部署 web 应用，就要在工程文件中指定访问的数据库的 ip 地址为 172.17.0.2，这样 web 应用部署在 tomcat 上才会去读取 mysql 中的数据。我这里的工程文件如下图所示：</p>
+</li>
+</ul>
+<p><img src="http://img.blog.csdn.net/20180121145629175?" alt="java数据库配置页面"></p>
+<p>将工程文件中连接数据库的配置信息改成我们容器的 ip 地址即可。然后导出 war 包工程文件，我的开发软件是 eclipse。直接用复制粘贴把 war 放入的虚机里的 /mnt 目录下。</p>
+<p> <img src="http://img.blog.csdn.net/20180121150432114?" alt="这里写图片描述"></p>
+<h3 id="部署、检验"><a href="#部署、检验" class="headerlink" title="部署、检验"></a>部署、检验</h3><p>接下来要将 /mnt 目录下的 war 包文件放到 myweb 容器下的 webapps 目录下，命令如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@kubernetes ~]#  docker cp /mnt/MPS_system.war fa0be9ddda5c1d667be886ad28e9895e37d17b839677e215a0dfb7e961b6c974:/usr/local/tomcat/webapps</span><br></pre></td></tr></table></figure>
+<p>这个命令是把在 /mnt 下的 MPS_system.war 文件拷贝到 myweb 容器下的 webapps 目录下。里面很长的那个字符串是容器的id，这里用 myweb 应该也可以（myweb 是 tomcat 容器的容器名），后面是 webapps 在容器中的路径，是固定的，直接复制即可。</p>
+<p><img src="http://img.blog.csdn.net/20180121151240056?" alt="这里写图片描述"></p>
+<p>可以看到tomcat容器已经自动帮我们解压并部署了war包工程文件，到此为止，部署工作全部完成！</p>
+<ul>
+<li><p>验收一下<br>部署完成之后就该看看是否成功了，在浏览器中输入虚机的 ip+war 包文件名，如下图：</p>
+<p><img src="http://img.blog.csdn.net/20180121151733830?" alt="这里写图片描述"></p>
+<p>访问成功！试试登录是否正常，如果登录正常说明 myweb 是访问到了 mysql 数据库的，因为登录信息保存在 mysql 的表中。</p>
+<p><img src="http://img.blog.csdn.net/20180121151856453?" alt="这里写图片描述"></p>
+<p>登录成功，成功进入后台！至此，在容器中部署java web应用全部完成。</p>
+</li>
+</ul>
+
+          
+		
+        </section>
+      </div>
+	     	  
+      <div class='block'>
+
+  
+    <a class='main' href='/'>Blog</a>
+  
+    <a class='main' href='mailto:.yun@gmail.com'>Email</a>
+  
+    <a class='main' href='https://github.com/benarchen'>Github</a>
+  
+  
+</div>
+
+    </div>
+    <footer>
+  <span class='muted'><font size = "4"> Powered by benarchen </font></span><br>
+</footer>
+
+  </body>
+</html>
