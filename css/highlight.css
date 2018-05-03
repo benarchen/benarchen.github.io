@@ -1,6 +1,6 @@
 .post pre,
 .post .highlight {
-  background: #2d2d2d;
+  background: #F6F8FA;	/*代码块背景色*/
   padding: 1em;
   border-style: solid;
   border-color: #ddd;
@@ -15,7 +15,7 @@
 .post .highlight pre,
 .post .gist .gist-file .gist-data .line-numbers {
   color: #666;
-  font-size: 13px;
+  font-size: 14px;
 }
 .post pre,
 .post code {
